@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	 <meta charset="UTF-8">
+	 <meta http-equiv="X-UA-Compatible" content="IE=edge">
+	 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	 <title>Document</title>
+	 <link rel="stylesheet" href="index.css">
+</head>
+<body>
+	<div id="Screens">
+		<div id="ScreenMenu" class="Screen">
+			<h1>Menu</h1>
+			<button id="BtnStart" onclick="game.StartGame()">Start Game</button>
+		</div>
+		<div id="ScreenConfigs" class="Screen">
+			<h1>Configs</h1>
+			<button id="BtnExitConfigs" onclick="game.ExitConfigs()">Exit Configs</button>
+		</div>
+		<div id="ScreenGame" class="Screen">
+			<canvas id="CanvasGame"></canvas>
+			<button id="BtnPause" onclick="game.Pause()">Pause Game</button>
+		</div>
+		<div id="ScreenGameOver" class="Screen">
+			<h1>Game Over</h1>
+			<button id="BtnRestart" onclick="game.Restart()">Restart Game</button>
+		</div>
+	</div>    <div id="Container"></div>
+	 <script src="index.js" type="module"></script>
+</body>
+</html> 

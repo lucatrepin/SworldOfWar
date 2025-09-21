@@ -1,0 +1,20 @@
+* {
+    margin: 0px;
+    padding: 0px;
+}
+
+body {
+    background-color: black;
+    width: 100dvw;
+    height: 100dvh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#ContainerGame {
+    margin: 0px;
+    padding: 0px;
+}
+
+/* {% include 'Lib/Screens.css' %} */
