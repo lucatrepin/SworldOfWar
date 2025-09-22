@@ -12,9 +12,4 @@ body {
     align-items: center;
 }
 
-#ContainerGame {
-    margin: 0px;
-    padding: 0px;
-}
-
 /* {% include 'Lib/Screens.css' %} */

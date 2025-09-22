@@ -37,6 +37,19 @@ body {
    cursor: pointer;
 }
 
+.Screen {
+   display: none;
+}
+
+#Screens {
+   display: flex;
+   flex-direction: column;
+   justify-content: center;
+   align-items: center;
+   width: 100%;
+   height: 100%;
+}
+
 #ScreenMenu {
    flex-direction: column;
    justify-content: center;
@@ -67,12 +80,4 @@ body {
    align-items: center;
    width: 100%;
    height: 100%;
-}
-
-#ScreenMenu {
-   display: flex;
-}
-
-#ScreenConfigs, #ScreenGame, #ScreenGameOver {
-   display: none;
 }

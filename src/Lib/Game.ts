@@ -1,34 +1,36 @@
 export const enum ScreenEnum {
     Menu,
-    Config,
+    Configs,
     Game,
-    GameOver
+    Paused,
+    GameOver,
+    GameWin
 };
 
 export function SetScreen(screen: ScreenEnum): void {
     switch(screen) {
         case ScreenEnum.Menu:
             (document.getElementById("ScreenMenu") as HTMLDivElement).style.display = "flex";
-            (document.getElementById("ScreenConfig") as HTMLDivElement).style.display = "none";
-            (document.getElementById("ContainerGame") as HTMLDivElement).style.display = "none";
+            (document.getElementById("ScreenConfigs") as HTMLDivElement).style.display = "none";
+            (document.getElementById("ScreenGame") as HTMLDivElement).style.display = "none";
             (document.getElementById("ScreenGameOver") as HTMLDivElement).style.display = "none";
             break;
-        case ScreenEnum.Config:
+        case ScreenEnum.Configs:
             (document.getElementById("ScreenMenu") as HTMLDivElement).style.display = "none";
-            (document.getElementById("ScreenConfig") as HTMLDivElement).style.display = "flex";
-            (document.getElementById("ContainerGame") as HTMLDivElement).style.display = "none";
+            (document.getElementById("ScreenConfigs") as HTMLDivElement).style.display = "flex";
+            (document.getElementById("ScreenGame") as HTMLDivElement).style.display = "none";
             (document.getElementById("ScreenGameOver") as HTMLDivElement).style.display = "none";
             break;
         case ScreenEnum.Game:
             (document.getElementById("ScreenMenu") as HTMLDivElement).style.display = "none";
-            (document.getElementById("ScreenConfig") as HTMLDivElement).style.display = "none";
-            (document.getElementById("ContainerGame") as HTMLDivElement).style.display = "flex";
+            (document.getElementById("ScreenConfigs") as HTMLDivElement).style.display = "none";
+            (document.getElementById("ScreenGame") as HTMLDivElement).style.display = "flex";
             (document.getElementById("ScreenGameOver") as HTMLDivElement).style.display = "none";
             break;
         case ScreenEnum.GameOver:
             (document.getElementById("ScreenMenu") as HTMLDivElement).style.display = "none";
-            (document.getElementById("ScreenConfig") as HTMLDivElement).style.display = "none";
-            (document.getElementById("ContainerGame") as HTMLDivElement).style.display = "none";
+            (document.getElementById("ScreenConfigs") as HTMLDivElement).style.display = "none";
+            (document.getElementById("ScreenGame") as HTMLDivElement).style.display = "none";
             (document.getElementById("ScreenGameOver") as HTMLDivElement).style.display = "flex";
             break;
     }
@@ -41,48 +43,52 @@ export async function GetText(path: string): Promise<string> {
 };
 
 export abstract class Game {
-    Container: HTMLDivElement = null as any;
-    Canvas: HTMLCanvasElement = null as any;
-    Ctx: CanvasRenderingContext2D = null as any;
+    private Canvas: HTMLCanvasElement | null = null;
+    private Ctx: CanvasRenderingContext2D | null = null;
+    private InMenu: boolean = true;
     Time: number = 0;
     GamePaused: boolean = false;
     GameOver: boolean = false;
     BackgroundImagePath: string = "";
     constructor(width: number, height: number) {
-        this.Initialize(width, height);
-    }
-    async Initialize(width: number, height: number): Promise<void> {
-
-    }
-    SetContainerSize(width: number, height: number): void {
-        this.Container.style.width = `${width}px`;
-        this.Container.style.height = `${height}px`;
+        setTimeout(() => {
+            this.Canvas = document.createElement("canvas");
+            this.Canvas.style.width = `${width}px`;
+            this.Canvas.style.height = `${height}px`;
+            if (this.Canvas != null) this.Ctx = this.Canvas.getContext("2d");
+            (document.getElementById("BtnStart")!).addEventListener("click", () => {
+                this.InMenu = false;
+                SetScreen(ScreenEnum.Game);
+                this.Time = Date.now();
+                this.Update();
+            });
+            (document.getElementById("BtnExitConfigs")!).addEventListener("click", () => {
+                if (this.InMenu) SetScreen(ScreenEnum.Menu);
+                else SetScreen(ScreenEnum.Game);
+            });
+            for (const element of document.getElementsByClassName("BtnOpenConfigs")) {
+                (element as HTMLButtonElement).addEventListener("click", () => {
+                    SetScreen(ScreenEnum.Configs);
+                });
+            }
+            (document.getElementById("BtnReturnToMenu")!).addEventListener("click", () => {
+                this.InMenu = true;
+                SetScreen(ScreenEnum.Menu);
+            });
+            SetScreen(ScreenEnum.Menu);
+        }, 0); // To allow the DOM to load
     }
     SetBackground(pathImg: string): void {
         this.BackgroundImagePath = pathImg;
-    }
-    Start(): void {
-        requestAnimationFrame(this.Update.bind(this));
-    }
-    ExitConfigs(): void {
-        SetScreen(ScreenEnum.Menu);
-    }
-    Pause(): void {
-        this.GamePaused = true;
-    }
-    Restart(): void {
-        this.GameOver = false;
-        this.GamePaused = false;
-        this.Start();
     }
     private Update() : void {
         const delta: number = 1 / ((Date.now() - this.Time) / 1000);
         this.Time = Date.now();
         this.Process(delta);
-        this.Ctx.clearRect(0, 0, this.Canvas.width, this.Canvas.height);
+        this.Ctx!.clearRect(0, 0, this.Canvas!.width, this.Canvas!.height);
         const backgroundImage: CanvasImageSource = new Image();
         backgroundImage.src = this.BackgroundImagePath;
-        this.Ctx.drawImage(backgroundImage, 0, 0, this.Canvas.width, this.Canvas.height);
+        this.Ctx!.drawImage(backgroundImage, 0, 0, this.Canvas!.width, this.Canvas!.height);
         this.Draw();
         if (!this.GameOver || this.GamePaused) requestAnimationFrame(this.Update.bind(this));
     }

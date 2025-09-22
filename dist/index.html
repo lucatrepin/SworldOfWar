@@ -11,19 +11,20 @@
 	<div id="Screens">
 	   <div id="ScreenMenu" class="Screen">
 	      <h1>Menu</h1>
-	      <button id="BtnStart" onclick="game.Start()">Start Game</button>
+	      <button id="BtnStart">Start Game</button>
+	      <button class="BtnOpenConfigs">Open Configs</button>
 	   </div>
 	   <div id="ScreenConfigs" class="Screen">
 	      <h1>Configs</h1>
-	      <button id="BtnExitConfigs" onclick="game.ExitConfigs()">Exit Configs</button>
+	      <button id="BtnExitConfigs">Exit Configs</button>
 	   </div>
 	   <div id="ScreenGame" class="Screen">
 	      <canvas id="CanvasGame"></canvas>
-	      <button id="BtnPause" onclick="game.Pause()">Pause Game</button>
+	      <button class="BtnOpenConfigs">Open Configs</button>
 	   </div>
 	   <div id="ScreenGameOver" class="Screen">
 	      <h1>Game Over</h1>
-	      <button id="BtnRestart" onclick="game.Restart()">Restart Game</button>
+	      <button id="BtnReturnToMenu">Restart Game</button>
 	   </div>
 	</div>    <script src="index.js" type="module"></script>
 </body>

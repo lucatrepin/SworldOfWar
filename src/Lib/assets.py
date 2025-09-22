@@ -1,90 +1,71 @@
 import os;
 import shutil;
 from PIL import Image;
+from enum import Enum
+
+pathPy = os.path.abspath(__file__).replace("\\", "/")
+pathSrc = pathPy.replace("Lib/assets.py", "")
+pathDist = pathPy.replace("src/Lib/assets.py", "dist/")
+
+print("pathPy", pathPy)
+print("pathSrc", pathSrc)
+print("pathDist", pathDist)
+
+class ModeExtract(Enum):
+    CraftpixNormal = 1
 
 exceptionsFoldersCraftpixNormal = ["PSD", "__MACOSX"]
-exceptionsExtensionsCraftpixNormal = [".pdf", ".png", ".txt", ".url"]
+# exceptionsExtensionsCraftpixNormal = [".pdf", ".png", ".txt", ".url"]
 
-def CreateAssets(pathOrigin, pathDestination, mode="CraftpixNormal"):
-    if mode == "CraftpixNormal":
-        #print("Creating assets for CraftpixNormal mode")
-        if (os.path.isdir(pathDestination) == True):
-            shutil.rmtree(pathDestination)
-        shutil.copytree(pathOrigin, pathDestination)
-        for item in os.listdir(pathDestination):
-            pathFolder = pathDestination + "/" + item
-            if item in exceptionsFoldersCraftpixNormal:
-                shutil.rmtree(pathFolder)
+def extractAssetsWithFolderAssetsCraftpixNormal(sourcePath: str, destinationPath: str, scaleY = 1): # Use Gangsters_1 For Attack_1.png
+    for item in os.listdir(sourcePath): # items: Attack_1.png, Attack_2.png, / Exclusao de: .pdf, .txt etc
+        if os.path.isdir(os.path.join(sourcePath, item)):
+            print("Dir found where not expected:", item)
+            print("Path:", os.path.join(sourcePath, item))
+            continue
+        else:
+            img = Image.open(os.path.join(sourcePath, item))
+            animations = img.width / img.height * scaleY
+            if animations % 1 != 0:
+                print("Warning: unexpected image dimensions for sprite sheet:", item)
+                print("Width:", img.width, "Height:", img.height, "Animations (width/height):", animations)
+            animations = int(animations)
+            for i in range(animations):
+                box = (i * img.height, 0, (i + 1) * img.height, img.height)
+                imgCrop = img.crop(box)
+                imgCrop.save(os.path.join(destinationPath, f"{item.replace('.png', '')}_{i+1}.png"))
+    
+
+def extractAssetsWithPackageFolderAssetsCraftpixNormal(sourcePath: str, destinationPath: str): # Use briga de rua_gangster For Gangsters_1
+    for folder in os.listdir(sourcePath): # items: Gangsters_1, Gangsters_2, / Exclusao de: PSD, __MACOSX etc
+        if os.path.isdir(os.path.join(sourcePath, folder)):
+            if folder in exceptionsFoldersCraftpixNormal:
                 continue
-            if item.endswith(tuple(exceptionsExtensionsCraftpixNormal)):
-                os.remove(pathFolder)
-    else:
-        print("Mode not recognized(reconhecido):", mode)
+            itemSourcePath = os.path.join(sourcePath, folder)
+            itemDestinationPath = os.path.join(destinationPath, folder)
+            if not os.path.exists(itemDestinationPath):
+                os.makedirs(itemDestinationPath)
+            for item in os.listdir(itemSourcePath):
+                if os.path.isdir(os.path.join(itemSourcePath, item)) and item not in exceptionsFoldersCraftpixNormal:
+                    extractAssetsWithFolderAssetsCraftpixNormal(itemSourcePath, itemDestinationPath)
+        else:
+            continue
 
-def CreateMultAssents(pathFolderOrigin, pathFolderDestination, mode="CraftpixNormal"):
-    printProcess = False
-    if mode != "CraftpixNormal":
-        return
-
-    for folderPackage in os.listdir(pathFolderOrigin): # Background, Sprites
-        pathOriginPackage = pathFolderOrigin + folderPackage
-        pathDestinationPackage = pathFolderDestination + folderPackage
-
-        if printProcess == True:
-            print("folderPackage:", folderPackage)
-            print("pathOriginPackage:", pathOriginPackage)
-            print("pathDestinationPackage:", pathDestinationPackage)
-
-        for folderAssets in os.listdir(pathOriginPackage): # briga de rua_gangster, gorgona
-            pathOriginAssets = pathOriginPackage + "/" + folderAssets
-            pathDestinationAssets = pathDestinationPackage + "/" + folderAssets
-
-            if printProcess == True:
-                print("\nfolderAssets:", folderAssets)
-                print("pathOriginAssets:", pathOriginAssets)
-                print("pathDestinationAssets:", pathDestinationAssets)
-
-            CreateAssets(pathOriginAssets, pathDestinationAssets, mode)
+def extractAssetsWithPackageFolderAssets(sourcePath: str, destinationPath: str, mode: ModeExtract): # Use briga de rua_gangster For Gangsters_1
+    if mode == ModeExtract.CraftpixNormal:
+        extractAssetsWithPackageFolderAssetsCraftpixNormal(sourcePath, destinationPath)
 
 
-def CreateSubImgs(pathOrigin, pathDestination):
-    if (os.path.isdir(pathDestination + "/SubImgs") == False):
-        os.mkdir(pathDestination + "/SubImgs")
-    PathSubImgs = pathDestination + "/SubImgs/"
-    #print("PathSubImgs:", PathSubImgs)
 
-    for folder in os.listdir(pathOrigin): #Knight_1, Knight_2
-        if folder == "SubImgs": continue
-        if (os.path.isdir(PathSubImgs + folder) == False):
-            os.mkdir(PathSubImgs + folder)
+# def extractAssetsWithFolderAssets(sourcePath: str, destinationPath: str, mode: ModeExtract): # Sprites etc
+#     if not os.path.exists(sourcePath):
+#         print("Source path does not exist:", sourcePath)
+#         return
+#     if not os.path.exists(destinationPath):
+#         os.makedirs(destinationPath) # create destination folder if not exists: briga de rua_gangster, guerreiro medieval
+    
+#     if mode == ModeExtract.CraftpixNormal:
+#         extractAssetsWithFolderAssetsCraftpixNormal(sourcePath, destinationPath)
 
-        PathFolder = pathOrigin + "/" + folder + "/"
-        PathSubFolder = PathSubImgs + folder + "/"
-        #print("\nPathSubFolder:", PathSubFolder)
-        for imgPath in os.listdir(PathFolder): #attack_1.png, attack_2.png
-            #print("imgPath: ", imgPath)
-            img = Image.open(PathFolder + imgPath)
-            frames = img.size[0] / img.size[1]
-            if (frames.is_integer() == False):
-                print("Error: frames is not integer", imgPath, frames)
-                print("PathFolder + imgPath:", PathFolder + imgPath)
-                continue
-            for i in range(int(frames)):
-                imgCrop = img.crop((i * img.size[1], 0, (i + 1) * img.size[1], img.size[1])) #left, upper, right, lower
-                #print("PathSubFolder + imgPath.replace('.png', f'_{i + 1}.png'):", PathSubFolder + imgPath.replace(".png", f"_{i + 1}.png"))
-                imgCrop.save(PathSubFolder + imgPath.replace(".png", f"_{i + 1}.png"))
-        
-def CreateMultAssentsAndSubImgs(pathFolderOrigin, pathFolderDestination, mode="CraftpixNormal"):
-    CreateMultAssents(pathFolderOrigin, pathFolderDestination, mode)
-
-    for folderPackage in os.listdir(pathFolderDestination): # Background, Sprites
-        pathDestinationPackage = pathFolderDestination + folderPackage
-
-        for folderAssets in os.listdir(pathDestinationPackage): # briga de rua_gangster, gorgona
-            pathDestinationAssets = pathDestinationPackage + "/" + folderAssets
-            CreateSubImgs(pathDestinationAssets, pathDestinationAssets)
-
-CreateMultAssentsAndSubImgs("C:/Users/lucas/Desktop/SworldOfWar/src/BaseAssets/", "C:/Users/lucas/Desktop/SworldOfWar/dist/Assets/", "CraftpixNormal")
-
-# CreateMultAssents("C:/Users/lucas/Desktop/SworldOfWar/src/BaseAssets/", "C:/Users/lucas/Desktop/SworldOfWar/dist/Assets/", "CraftpixNormal")
-# CreateSubImgs("C:/Users/lucas/Desktop/SworldOfWar/dist/Assets/Sprites/briga de rua_gangster", "C:/Users/lucas/Desktop/SworldOfWar/dist/Assets/Sprites/briga de rua_gangster")
+extractAssetsWithPackageFolderAssets(os.path.join(pathSrc, "BaseAssets/Sprites"), os.path.join(pathDist, "Assets/Sprites"), ModeExtract.CraftpixNormal)
+# extractAssetsWithFolderAssetsCraftpixNormal(os.path.join(pathSrc, "BaseAssets/Sprites/briga de rua_gangster/Gangsters_1"), os.path.join(pathDist, "Assets/Sprites/briga de rua_gangster/Gangsters_1"), 1)
