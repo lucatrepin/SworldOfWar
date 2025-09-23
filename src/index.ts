@@ -1,4 +1,4 @@
-import { Entity, EntityRect, EntitySprite } from "./Lib/Entitys.js";
+import { Entity } from "./Lib/Entitys.js";
 import { Game } from "./Lib/Game.js";
 
 class SOWGame extends Game {

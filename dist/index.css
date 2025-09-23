@@ -12,11 +12,6 @@ body {
     align-items: center;
 }
 
-#ContainerGame {
-    margin: 0px;
-    padding: 0px;
-}
-
 .Screen h1 {
    width: fit-content;
    height: fit-content;
