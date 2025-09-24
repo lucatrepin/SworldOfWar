@@ -3,14 +3,20 @@ import shutil;
 from PIL import Image;
 from enum import Enum;
 import math;
+import json;
 
 pathPy = os.path.abspath(__file__).replace("\\", "/")
 pathSrc = pathPy.replace("Lib/assets.py", "")
 pathDist = pathPy.replace("src/Lib/assets.py", "dist/")
-
+pathSrcSprites = os.path.join(pathSrc, "Assets/Sprites")
+pathDistSprites = os.path.join(pathDist, "Assets/Sprites")
 print("pathPy", pathPy)
 print("pathSrc", pathSrc)
 print("pathDist", pathDist)
+print("pathSrcSprites", pathSrcSprites)
+print("pathDistSprites", pathDistSprites)
+
+PRINT = False
 
 class ExtractModeEnum(Enum):
     CRAFTPIX_NORMAL = 1
@@ -19,73 +25,92 @@ class ExtractModeEnum(Enum):
 def CreateAtlasWithFolderOfAssets(pathOrigin, pathDestiny): # Use Gangsters_1 for Create AtlasOfAssets
     if os.path.exists(pathDestiny) == False:
         os.makedirs(pathDestiny)
-    animations = 0
 
-    # varrer os assets e procurar o tamanho maior de width e height, alem de ver a quantidade de animations
-    atlasFiles = []
-    biggestSize = 0
-    imgs = []
+    def GetDimensionsForAtlas(animations):
+        raiz = animations ** 0.5
+        rest = raiz % 1
+        X = int(raiz)
+        Y = int(raiz)
+        if rest != 0:
+            X += 1
+            if (X * (X - 1)) >= animations: Y = X - 1
+            else: Y = X
+        return (X, Y)
 
-    for root, dirs, files in os.walk(pathOrigin):
-        filesAccepts = []
+    def SetAtlas(pathOrigin, pathDestiny):
+        atlasDict = {}
+        def CheckFiles():
+            for root, dirs, files in os.walk(pathOrigin):
+                for file in files:
+                    if os.path.isdir(os.path.join(root, file)):
+                        print("CreateAtlasWithFolderOfAssets: Folder inside folder not implemented", os.path.join(root, file))
+                        continue
+                    else:
+                        img = Image.open(os.path.join(root, file))
+                        width, height = img.size
+                        animations = width / height
+                        if animations != int(animations):
+                            print("Animation is not integer", os.path.join(root, file), animations)
+                            continue
+                        else:
+                            animations = int(animations)
+                            if (PRINT): print("Animation", os.path.join(root, file), animations)
+                        if height not in atlasDict:
+                            atlasDict[height] = []
+                        atlasDict[height].append((file, animations, img))
+                        
+        CheckFiles()
+
+        def CreateAtlas():
+            for numAtlas in atlasDict: 
+                atlas = atlasDict[numAtlas]
+                atlasSize = sum([a[1] for a in atlas])
+                (X, Y) = GetDimensionsForAtlas(atlasSize)
+                atlasImage = Image.new('RGBA', (X * numAtlas, Y * numAtlas), (0, 0, 0, 0))
+                x = 0
+                y = 0
+                for file, animations, img in atlas:
+                    if (PRINT): print("CreateAtlasWithFolderOfAssets: Create Atlas", file, animations, "Size:", (X, Y), "Each:", numAtlas)
+                    for i in range(animations):
+                        imgCrop = img.crop((i * numAtlas, 0, (i + 1) * numAtlas, numAtlas))
+                        atlasImage.paste(imgCrop, (x * numAtlas, y * numAtlas))
+                        x += 1
+                        if x == X:
+                            x = 0
+                            y += 1
+                            
+                atlasImage.save(os.path.join(pathDestiny, f"atlas_{numAtlas}.png"))
+
+                
+                def CreateJson(): # dar um jeito de fazer isso melhor / checar se funciona corretamente com o ts
+                    x = 0
+                    y = 0
+                    jsonData = {"atlas": {}, "data": {"numAtlas": numAtlas, "size": {"X": X, "Y": Y}}}
+                    for file, animations, img in atlas:
+                        jsonData["atlas"][os.path.splitext(file)[0]] = {}
+                        for i in range(animations):
+                            jsonData["atlas"][os.path.splitext(file)[0]][i] = {
+                                "x": x * numAtlas,
+                                "y": y * numAtlas,
+                            }
+                            x += 1
+                            if x == X:
+                                x = 0
+                                y += 1
+
+                    
+                    with open(os.path.join(pathDestiny, f"atlas_{numAtlas}.json"), "w") as jsonFile:
+                        json.dump(jsonData, jsonFile, indent=3)
+
+                CreateJson()
         
-        for file in files:
-            if file.endswith(".png"):
-                img = Image.open(os.path.join(root, file))
-                width, height = img.size
-                animCount = width / height
-                if animCount % 1 != 0:
-                    print("Error: Animation is not correct format:", file)
-                    print("width / height: ", width / height)
-                    continue
-                else:
-                    animations += int(animCount)
-                    for anim in range(int(animCount)):
-                        imgs.append(img.crop((anim * height, 0, (anim + 1) * height, height)))
+        CreateAtlas()
 
-                if height > biggestSize:
-                    biggestSize = height
-                filesAccepts.append(file)
-            else:
-                print("File not supported:", file)
+        if (PRINT): print("AtlasDict", atlasDict)
+    
+    
+    SetAtlas(pathOrigin, pathDestiny)
 
-        atlasFiles.extend(filesAccepts)
-
-    print("biggestSize", biggestSize)
-    print("animations", animations)
-    print("atlasFiles", atlasFiles)
-
-    raiz = animations ** 0.5
-    rest = raiz % 1
-    X = int(raiz)
-    Y = int(raiz)
-    if rest != 0:
-        X += 1
-        if (X * (X - 1)) >= animations: Y = X - 1
-        else: Y = X
-
-    print("X", X, "Y", Y)
-
-    atlas = Image.new("RGBA", (X * biggestSize, Y * biggestSize), (0, 0, 0, 0)) # Cria uma imagem em branco para o atlas
-
-    position = (0, 0)
-    x = 0
-    y = 0
-
-    for img in imgs:
-        width, height = img.size
-        atlas.paste(img, position)
-        if x < X - 1:
-            x += 1
-            position = (x * biggestSize, y * biggestSize)
-        else:
-            x = 0
-            y += 1
-            position = (0, y * biggestSize)
-        
-    pathAtlasDestiny = os.path.join(pathDestiny, "atlas.png")
-    print("pathAtlasDestiny", pathAtlasDestiny)
-    atlas.save(pathAtlasDestiny)
 
 def extractAssetsCraftpixNormal(pathOrigin, pathDestiny): # Use briga de rua_gangster for create multiple atlas
     execptionsFolders = ["PSD", "__MACOSX"]
@@ -107,10 +132,6 @@ def extractMultAssets(pathOrigin, pathDestiny, mode: ExtractModeEnum):
         if os.path.isdir(os.path.join(pathOrigin, item)):
             extractAssets(os.path.join(pathOrigin, item), os.path.join(pathDestiny, item), mode)
 
-pathSrcSprites = os.path.join(pathSrc, "Assets/Sprites")
-pathDistSprites = os.path.join(pathDist, "Assets/Sprites")
-print("pathSrcSprites", pathSrcSprites)
-print("pathDistSprites", pathDistSprites)
 
 
 extractMultAssets(pathSrcSprites, pathDistSprites, ExtractModeEnum.CRAFTPIX_NORMAL)

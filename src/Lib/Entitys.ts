@@ -1,8 +1,8 @@
-export class Entity {
+export class Entity<Atlas> {
     constructor(
         public X: number,
         public Y: number,
-        public pathAtlas: string
+        pathAtlas: string
     ) {
         
     }

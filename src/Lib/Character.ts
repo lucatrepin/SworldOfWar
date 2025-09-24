@@ -1,13 +1,12 @@
 import { Entity } from "./Entitys.js";
 
-export class Character extends Entity {
+export class Character<Atlas> extends Entity<Atlas> {
 	constructor(
 		X: number,
 		Y: number,
-		pathAtlas: string,
 		public Velocity: [number, number]
 	) {
-		super(X, Y, pathAtlas);
+		super(X, Y);
 	}
 	Move(delta: number, dirX: number, dirY: number): void {
 		this.X += dirX * this.Velocity[0] * delta;
