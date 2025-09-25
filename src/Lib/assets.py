@@ -22,7 +22,18 @@ class ExtractModeEnum(Enum):
     CRAFTPIX_NORMAL = 1
 
 
+def VerifyIgnore(path): # terminar de implementar / usar no codigo
+    execptions = ["IGNORE", "ignore", "Ignore"]
+    for root, dirs, files in os.walk(path):
+        if execptions in dirs or execptions in files:
+            if (PRINT): print("VerifyIgnore: Ignore", path)
+            return True
+    return False
+
+
 def CreateAtlasWithFolderOfAssets(pathOrigin, pathDestiny): # Use Gangsters_1 for Create AtlasOfAssets
+    if VerifyIgnore(pathOrigin): return # logica Ignore
+
     if os.path.exists(pathDestiny) == False:
         os.makedirs(pathDestiny)
 
@@ -88,10 +99,14 @@ def CreateAtlasWithFolderOfAssets(pathOrigin, pathDestiny): # Use Gangsters_1 fo
                     jsonData = {"atlas": {}, "data": {"numAtlas": numAtlas, "size": {"X": X, "Y": Y}}}
                     for file, animations, img in atlas:
                         jsonData["atlas"][os.path.splitext(file)[0]] = {}
+                        timeBase = 1000
+                        jsonData["atlas"][os.path.splitext(file)[0]]["time"] = timeBase
                         for i in range(animations):
                             jsonData["atlas"][os.path.splitext(file)[0]][i] = {
                                 "x": x * numAtlas,
                                 "y": y * numAtlas,
+                                "w": x * numAtlas + numAtlas,
+                                "h": y * numAtlas + numAtlas,
                             }
                             x += 1
                             if x == X:
@@ -113,6 +128,8 @@ def CreateAtlasWithFolderOfAssets(pathOrigin, pathDestiny): # Use Gangsters_1 fo
 
 
 def extractAssetsCraftpixNormal(pathOrigin, pathDestiny): # Use briga de rua_gangster for create multiple atlas
+    if VerifyIgnore(pathOrigin): v # logica Ignore
+
     execptionsFolders = ["PSD", "__MACOSX"]
     for item in os.listdir(pathOrigin): #  Use briga de rua_gangster For Gangsters_1
         if os.path.isdir(os.path.join(pathOrigin, item)):
@@ -120,6 +137,8 @@ def extractAssetsCraftpixNormal(pathOrigin, pathDestiny): # Use briga de rua_gan
                 CreateAtlasWithFolderOfAssets(os.path.join(pathOrigin, item), os.path.join(pathDestiny, item))
 
 def extractAssets(pathOrigin, pathDestiny, mode: ExtractModeEnum):
+    if VerifyIgnore(pathOrigin): return # logica Ignore
+
     if os.path.exists(pathDestiny) == False:
         os.makedirs(pathDestiny)
     
@@ -127,7 +146,8 @@ def extractAssets(pathOrigin, pathDestiny, mode: ExtractModeEnum):
         extractAssetsCraftpixNormal(pathOrigin, pathDestiny)
 
 def extractMultAssets(pathOrigin, pathDestiny, mode: ExtractModeEnum):
-    # extractAssets(os.path.join(pathSrcSprites, "briga de rua_gangster"), os.path.join(pathDistSprites, "briga de rua_gangster"), ExtractModeEnum.CRAFTPIX_NORMAL)
+    if VerifyIgnore(pathOrigin): return # logica Ignore
+
     for item in os.listdir(pathOrigin):
         if os.path.isdir(os.path.join(pathOrigin, item)):
             extractAssets(os.path.join(pathOrigin, item), os.path.join(pathDestiny, item), mode)
@@ -136,3 +156,6 @@ def extractMultAssets(pathOrigin, pathDestiny, mode: ExtractModeEnum):
 
 extractMultAssets(pathSrcSprites, pathDistSprites, ExtractModeEnum.CRAFTPIX_NORMAL)
 
+
+
+# def VerifyIgnore(path): # terminar de implementar / usar no codigo

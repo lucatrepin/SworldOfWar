@@ -1,26 +1,23 @@
 export class Entity {
     X;
     Y;
-    constructor(x, y) {
-        this.X = x;
-        this.Y = y;
+    Sprite;
+    Velocity;
+    constructor(X, Y, Sprite, Velocity) {
+        this.X = X;
+        this.Y = Y;
+        this.Sprite = Sprite;
+        this.Velocity = Velocity;
+    }
+    Update(delta) {
+        this.Move(delta);
+        this.Sprite.Draw();
+    }
+    Move(delta) {
+        this.X += this.Sprite.Direction[0] * this.Velocity[0] * delta;
+        this.Y += this.Sprite.Direction[1] * this.Velocity[1] * delta;
+    }
+    Draw() {
+        this.Sprite.Draw();
     }
 }
-export class EntityRect extends Entity {
-    Width;
-    Height;
-    constructor(x, y, width, height) {
-        super(x, y);
-        this.Width = width;
-        this.Height = height;
-    }
-}
-;
-export class EntitySprite extends Entity {
-    IMGs;
-    constructor(x, y, imgSrc, frameCount = 1, framesPerRow = 1, framesPerCol = 1, alignHorizontal = true) {
-        super(x, y);
-        this.IMGs = [];
-    }
-}
-;
